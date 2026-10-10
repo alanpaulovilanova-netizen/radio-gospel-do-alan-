@@ -31,25 +31,19 @@ jobs:
 
       - name: Verificar arquivos
         run: |
-          echo "Arquivos na raiz:"
+          echo "=== Arquivos da raiz ==="
           ls -la
-          echo "Arquivos Gradle:"
+          echo "=== Arquivos Gradle ==="
           find . -maxdepth 6 -type f \( -name settings.gradle -o -name settings.gradle.kts -o -name build.gradle -o -name build.gradle.kts \)
 
-      - name: Verificar projeto Android
+      - name: Verificar módulo app
         run: |
           if [ ! -f settings.gradle ] && [ ! -f settings.gradle.kts ]; then
-            echo "ERRO: arquivo settings.gradle(.kts) não encontrado na raiz."
+            echo "ERRO: settings.gradle(.kts) não encontrado."
             exit 1
           fi
-
           if [ ! -d app ]; then
-            echo "ERRO: pasta app não encontrada."
-            exit 1
-          fi
-
-          if [ ! -f app/build.gradle ] && [ ! -f app/build.gradle.kts ]; then
-            echo "ERRO: arquivo de configuração do módulo app não encontrado."
+            echo "ERRO: pasta app não encontrada na raiz."
             exit 1
           fi
 
@@ -63,3 +57,5 @@ jobs:
           name: Radio-Gospel-do-Alan-APK
           path: app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
+
+
