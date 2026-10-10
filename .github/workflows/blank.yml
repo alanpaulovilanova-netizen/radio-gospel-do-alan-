@@ -4,15 +4,20 @@ name: Gerar APK Android
 on:
   workflow_dispatch:
   push:
-    branches: [ "main" ]
+    branches: [main]
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Baixar arquivos do projeto
+      - name: Baixar projeto
         uses: actions/checkout@v4
+
+      - name: Verificar arquivos
+        run: |
+          ls -la
+          find . -maxdepth 4 -type f \( -name gradlew -o -name gradlew.bat -o -name settings.gradle -o -name settings.gradle.kts \)
 
       - name: Configurar Java
         uses: actions/setup-java@v4
@@ -20,16 +25,22 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Configurar Gradle
-        uses: gradle/actions/setup-gradle@v4
-
       - name: Gerar APK
         run: |
-          chmod +x gradlew
-          ./gradlew assembleDebug
+          if [ -f ./gradlew ]; then
+            chmod +x ./gradlew
+            ./gradlew assembleDebug
+          elif [ -f ./gradle/wrapper/gradle-wrapper.properties ]; then
+            gradle assembleDebug
+          else
+            echo "ERRO: projeto sem Gradle Wrapper na raiz."
+            exit 1
+          fi
 
       - name: Disponibilizar APK
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: aplicativo-APK
           path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
