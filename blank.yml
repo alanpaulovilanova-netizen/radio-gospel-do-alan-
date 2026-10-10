@@ -1,3 +1,4 @@
+
 name: Gerar APK Android
 
 on:
@@ -24,56 +25,36 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-          cache: gradle
 
-      - name: Verificar estrutura do projeto
+      - name: Instalar Gradle
+        uses: gradle/actions/setup-gradle@v5
+
+      - name: Verificar arquivos
         run: |
-          echo "=== Raiz do projeto ==="
-          pwd
+          echo "Arquivos na raiz:"
           ls -la
+          echo "Arquivos Gradle:"
+          find . -maxdepth 6 -type f \( -name settings.gradle -o -name settings.gradle.kts -o -name build.gradle -o -name build.gradle.kts \)
 
-          echo "=== Arquivos Gradle ==="
-          find . -maxdepth 7 -type f \( \
-            -name settings.gradle \
-            -o -name settings.gradle.kts \
-            -o -name build.gradle \
-            -o -name build.gradle.kts \
-            -o -name gradlew \
-            -o -name gradle-wrapper.properties \
-          \) -print
-
-          echo "=== Pastas do projeto ==="
-          find . -maxdepth 3 -type d -print
-
-      - name: Verificar módulo Android
+      - name: Verificar projeto Android
         run: |
           if [ ! -f settings.gradle ] && [ ! -f settings.gradle.kts ]; then
-            echo "ERRO: settings.gradle ou settings.gradle.kts não encontrado na raiz."
+            echo "ERRO: arquivo settings.gradle(.kts) não encontrado na raiz."
             exit 1
           fi
 
           if [ ! -d app ]; then
-            echo "ERRO: a pasta app não existe na raiz do projeto."
-            echo "É necessário adicionar os arquivos-fonte do aplicativo Android."
+            echo "ERRO: pasta app não encontrada."
             exit 1
           fi
 
           if [ ! -f app/build.gradle ] && [ ! -f app/build.gradle.kts ]; then
-            echo "ERRO: falta app/build.gradle ou app/build.gradle.kts."
+            echo "ERRO: arquivo de configuração do módulo app não encontrado."
             exit 1
           fi
 
-      - name: Preparar Gradle
-        uses: gradle/actions/setup-gradle@v5
-
       - name: Gerar APK
-        run: |
-          if [ -f ./gradlew ]; then
-            chmod +x ./gradlew
-            ./gradlew assembleDebug
-          else
-            gradle assembleDebug
-          fi
+        run: gradle assembleDebug
 
       - name: Disponibilizar APK
         if: success()
@@ -82,4 +63,3 @@ jobs:
           name: Radio-Gospel-do-Alan-APK
           path: app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
-          retention-days: 7
