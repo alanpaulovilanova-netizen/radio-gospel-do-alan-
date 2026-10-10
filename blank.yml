@@ -6,7 +6,6 @@ on:
   push:
     branches:
       - main
-      - principal
 
 permissions:
   contents: read
@@ -31,24 +30,16 @@ jobs:
 
       - name: Verificar arquivos
         run: |
-          echo "=== Arquivos na raiz ==="
+          echo "Arquivos do projeto:"
           ls -la
-          echo "=== Arquivos Gradle ==="
-          find . -maxdepth 6 -type f \( -name settings.gradle -o -name settings.gradle.kts -o -name build.gradle -o -name build.gradle.kts \)
+          echo "Verificando pasta app:"
+          if [ ! -d app ]; then
+            echo "ERRO: a pasta app não existe."
+            exit 1
+          fi
 
       - name: Gerar APK
-        run: |
-          if [ ! -f settings.gradle ] && [ ! -f settings.gradle.kts ]; then
-            echo "ERRO: arquivo settings.gradle(.kts) não encontrado na raiz."
-            exit 1
-          fi
-
-          if [ ! -d app ]; then
-            echo "ERRO: pasta app não encontrada."
-            exit 1
-          fi
-
-          gradle assembleDebug
+        run: gradle assembleDebug
 
       - name: Disponibilizar APK
         if: success()
