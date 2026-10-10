@@ -1,43 +1,23 @@
-name: Gerar APK Android
-
-on:
-  workflow_dispatch:
-  push:
-    branches:
-      - main
-      - principal
-
-jobs:
-  build:
-    runs-on: ubuntu-24.04
-
-    steps:
-      - name: Baixar projeto
-        uses: actions/checkout@v5
-
-      - name: Configurar Java
-        uses: actions/setup-java@v5
-        with:
-          distribution: temurin
-          java-version: '17'
-
-      - name: Instalar Gradle
-        uses: gradle/actions/setup-gradle@v4
-
-      - name: Verificar arquivos
+  - name: Verificar arquivos
         run: |
+          echo "=== Arquivos na raiz ==="
           ls -la
-          find . -maxdepth 5 -type f \( -name build.gradle -o -name build.gradle.kts -o -name settings.gradle -o -name settings.gradle.kts \)
+          echo "=== Arquivos Gradle encontrados ==="
+          find . -maxdepth 6 -type f \( -name build.gradle -o -name build.gradle.kts -o -name settings.gradle -o -name settings.gradle.kts \)
+          echo "=== Pastas de módulos ==="
+          find . -maxdepth 4 -type d
 
       - name: Gerar APK
         run: |
+          if [ ! -f settings.gradle ] && [ ! -f settings.gradle.kts ]; then
+            echo "ERRO: arquivo settings.gradle ou settings.gradle.kts não encontrado na raiz."
+            exit 1
+          fi
+          if [ ! -d app ]; then
+            echo "ERRO: pasta app não existe. É necessário localizar o módulo Android."
+            exit 1
+          fi
           gradle assembleDebug
 
-      - name: Disponibilizar APK
-        if: success()
-        uses: actions/upload-artifact@v4
-        with:
-          name: aplicativo-APK
-          path: app/build/outputs/apk/debug/*.apk
-          if-no-files-found: error
 
+    
